@@ -2,6 +2,17 @@
 
 #define COMMANDSCOUNT   2       // Numero di comandi presenti nel programma (aumentare in base alla necessità)
 
+void scanProject(char *sCommand,char *sPath){
+	char *aCommands[COMMANDSCOUNT];
+
+	aCommands[0] = "--help";
+	aCommands[1] = "--get-row-count";
+
+	if(strcmp(sCommand,aCommands[0]) == 0)          printHelp();
+	else if(strcmp(sCommand,aCommands[1]) == 0)     getRowCount(sPath);
+	else                                            unknownCommand();
+}
+
 /*
 	Cosa fa     :     Stampa nello stdout l'help del programma
 */
@@ -31,17 +42,6 @@ void printHelp(void){
 	fprintf(stdout, "\t\thttps://www.facebook.com/LucaBertoniLucaBertoni\n");
 	fprintf(stdout, "\tGithub profile:\n");
 	fprintf(stdout, "\t\thttps://github.com/lucabertoni\n");  
-}
-
-void scanProject(char *sCommand,char *sPath){
-	char *aCommands[COMMANDSCOUNT];
-
-	aCommands[0] = "--help";
-	aCommands[1] = "--get-row-count";
-
-	if(strcmp(sCommand,aCommands[0]) == 0)          printHelp();
-	else if(strcmp(sCommand,aCommands[1]) == 0)     getRowCount(sPath);
-	else                                            unknownCommand();
 }
 
 int getRowCount(char *sPath){
