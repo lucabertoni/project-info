@@ -13,4 +13,6 @@ void scanProject(char *sCommand,char *sPath);
 void unknownCommand(void);
 int getRowCount(char *sPath);
 void printRowCount(char *sPath);
-int getFileRowCount(char *sName);
+int getFileRowCount(char *sFilePath);
+void printProjectCost(char *sPath);
+int getProjectCost(char *sPath);

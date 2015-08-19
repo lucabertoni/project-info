@@ -1,22 +1,26 @@
 #include "project-info.h"	// Includo l'header
 
-#define COMMANDSCOUNT   	2       // Numero di comandi presenti nel programma (aumentare in base alla necessità)
+// TODO			:			File di configurazione per questi parametri
+#define COMMANDSCOUNT   	3       // Numero di comandi presenti nel programma (aumentare in base alla necessità)
 #define MAXFILENAMELENGTH	255		// Lunghezza massima del nome di un file/direcory
 #define MAXFILELINELEN		1024	// Lunghezza massima di una riga riga di un file di testo
+#define HOURLYCOST			20		// Costo orario nella moneta dell'utente per lo sviluppo del progetto
+#define AVERAGEWRITINGTIME	15		// Tempo medio in secondi di scrittura di una riga di testo
 
 /*
 	Cosa fa			:			Gestisce il funzionamento del programma in base i parametri (comandi e opzioni)
 								inseriti dall'utente
 */
-
 void scanProject(char *sCommand,char *sPath){
 	char *aCommands[COMMANDSCOUNT];
 
 	aCommands[0] = "--help";
 	aCommands[1] = "--get-row-count";
+	aCommands[2] = "--get-project-cost";
 
 	if(strcmp(sCommand,aCommands[0]) == 0)          printHelp();
 	else if(strcmp(sCommand,aCommands[1]) == 0)     printRowCount(sPath);
+	else if(strcmp(sCommand,aCommands[2]) == 0)     printProjectCost(sPath);
 	else                                            unknownCommand();
 }
 
@@ -42,6 +46,10 @@ void printHelp(void){
 	fprintf(stdout, "\t\t\tShow this manual\n");
 	fprintf(stdout, "\t\t--get-row-count :\n");
 	fprintf(stdout, "\t\t\tGet the amount of rows of your project (ex: source code)\n");
+	fprintf(stdout, "\t\t--get-project-cost :\n");
+	fprintf(stdout, "\t\t\tGet an approximate cost of the project. This calculation uses an average-writing-time\n");
+	fprintf(stdout, "\t\t\tof 20 seconds for each line of text in the project, and a hourly cost of 20 (euro/USD/...)\n");
+	fprintf(stdout, "\t\t\tYou can configure this values in setting file (settings.txt)\n");
 	fprintf(stdout, "\t<path>\n");	
 	fprintf(stdout, "\t\tPath of the folder you want to scan (without the / in the end). Ex: folder\n");
 	fprintf(stdout, "\t\tThis will scan the directory called 'folder'\n");	
@@ -66,7 +74,7 @@ void printRowCount(char *sPath){
 	nTotaleRighe = getRowCount(sPath);
 
 	if (nTotaleRighe == -1)
-		fprintf(stdout, "Error occurred during scan. Send log to luca.bertoni24@gmai.com to get support\n");
+		fprintf(stdout, "Error occurred during scan. Send log to luca.bertoni24@gmail.com to get support\n");
 	else
 		fprintf(stdout, "Total of lines: %d\n",nTotaleRighe);
 }
@@ -101,7 +109,8 @@ int getFileRowCount(char *sFilePath){
 /*
 	Cosa fa			:			Estrae il numero di righe presenti nei file della cartella (e sottocartelle) indicata
 	sPath			:			char, perorso della cartella da analizzare
-	Ritorna			:			nTotale -> intero, numero delle righe totali presenti nei vari file
+	Ritorna			:			nTotale -> intero, numero delle righe totali presenti nei vari file,
+								oppure -1 in caso di errore
 */
 int getRowCount(char *sPath){
 	int nTotale,nApp;
@@ -174,6 +183,41 @@ int getRowCount(char *sPath){
 	}
 
 	return nTotale;
+}
+
+
+void printProjectCost(char *sPath){
+	float nProjectCost;
+
+	fprintf(stdout, "Calculating project cost...\n");
+
+	nProjectCost = getProjectCost(sPath);
+
+	if (nProjectCost == -1)
+		fprintf(stdout, "Error occurred during scan. Send log to luca.bertoni24@gmail.com to get support\n");
+	else
+		fprintf(stdout, "Project cost: %f\n",nProjectCost);
+}
+
+int getProjectCost(char *sPath){
+	int nRowCount;
+	float nProjectCost;
+
+	nProjectCost = 0;
+
+	/*
+		Cosa fa			:			Estrae il numero di righe presenti nei file della cartella (e sottocartelle) indicata
+		sPath			:			char, perorso della cartella da analizzare
+		Ritorna			:			nTotale -> intero, numero delle righe totali presenti nei vari file,
+									oppure -1 in caso di errore
+	*/
+	nRowCount = getRowCount(sPath);
+	if (nRowCount == -1)
+		return -1;
+
+	nProjectCost = (float)(((float)((float)((float)(nRowCount*AVERAGEWRITINGTIME))/60)/60)*HOURLYCOST);
+
+	return nProjectCost;
 }
 
 /*
