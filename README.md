@@ -1,7 +1,7 @@
 # project-info
 <div align="center">
 	<p>
-		Get info about yout project!
+		Get info about your project!
 	</p>
 	<p>
 		You can use this tool to get info about your projects.  
