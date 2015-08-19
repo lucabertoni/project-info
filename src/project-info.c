@@ -1,6 +1,13 @@
-#include "project-info.h"
+#include "project-info.h"	// Includo l'header
 
-#define COMMANDSCOUNT   2       // Numero di comandi presenti nel programma (aumentare in base alla necessità)
+#define COMMANDSCOUNT   	2       // Numero di comandi presenti nel programma (aumentare in base alla necessità)
+#define MAXFILENAMELENGTH	255		// Lunghezza massima del nome di un file/direcory
+#define MAXFILELINELEN		1024	// Lunghezza massima di una riga riga di un file di testo
+
+/*
+	Cosa fa			:			Gestisce il funzionamento del programma in base i parametri (comandi e opzioni)
+								inseriti dall'utente
+*/
 
 void scanProject(char *sCommand,char *sPath){
 	char *aCommands[COMMANDSCOUNT];
@@ -9,7 +16,7 @@ void scanProject(char *sCommand,char *sPath){
 	aCommands[1] = "--get-row-count";
 
 	if(strcmp(sCommand,aCommands[0]) == 0)          printHelp();
-	else if(strcmp(sCommand,aCommands[1]) == 0)     getRowCount(sPath);
+	else if(strcmp(sCommand,aCommands[1]) == 0)     printRowCount(sPath);
 	else                                            unknownCommand();
 }
 
@@ -35,6 +42,9 @@ void printHelp(void){
 	fprintf(stdout, "\t\t\tShow this manual\n");
 	fprintf(stdout, "\t\t--get-row-count :\n");
 	fprintf(stdout, "\t\t\tGet the amount of rows of your project (ex: source code)\n");
+	fprintf(stdout, "\t<path>\n");	
+	fprintf(stdout, "\t\tPath of the folder you want to scan (without the / in the end). Ex: folder\n");
+	fprintf(stdout, "\t\tThis will scan the directory called 'folder'\n");	
 	fprintf(stdout, "\nContacts\n");
 	fprintf(stdout, "\tEmail:\n");
 	fprintf(stdout, "\t\tluca.bertoni24@gmail.com\n");
@@ -44,10 +54,131 @@ void printHelp(void){
 	fprintf(stdout, "\t\thttps://github.com/lucabertoni\n");  
 }
 
-int getRowCount(char *sPath){
+/*
+	Cosa fa			:			Stampa a schermo il numero totale di righe presenti nei file della cartella e sottocartelle
+								specificata
+	sPath			:			char, percorso della cartella da scansionare
+*/
+void printRowCount(char *sPath){
+	int nTotaleRighe;
+
 	fprintf(stdout, "I'm counting the lines, please wait...\n");
+	nTotaleRighe = getRowCount(sPath);
+
+	if (nTotaleRighe == -1)
+		fprintf(stdout, "Error occurred during scan. Send log to luca.bertoni24@gmai.com to get support\n");
+	else
+		fprintf(stdout, "Total of lines: %d\n",nTotaleRighe);
 }
 
+/*
+	Cosa fa			:			Apre un file in sola lettura e ne conta le righe al suo interno
+	sFilePath		:			char, percorso del file da scansionare
+	Ritorna			:			nRowCount -> intero, numero delle righe presenti nel file
+*/
+int getFileRowCount(char *sFilePath){
+    FILE *pFile;					// Puntatore al file da scansionare
+    int nRowCount;					// Variabile che conterrà il conteggio delle righe del file
+    char sLine[MAXFILELINELEN];		// Variabile puramente inutile se non per il fatto che serve per
+    								// poter scansionare il file
+    // Imposto di default che non ci sono righe nel file
+    nRowCount = 0;
+
+    // Apro il file in sola lettura
+    pFile = fopen (sFilePath, "r");
+
+    // Se il file è stato aperto correttamente allora passo a contare le righe
+    if (pFile!=NULL)
+    	// Ciclo ed estraggo righe fino a quando non arrivo alla fine del file
+    	while (fgets(sLine, sizeof(sLine), pFile)) ++nRowCount;
+
+    // Chiudo il file che ho aperto in precedenza
+    fclose(pFile);
+
+    return nRowCount;
+}
+
+/*
+	Cosa fa			:			Estrae il numero di righe presenti nei file della cartella (e sottocartelle) indicata
+	sPath			:			char, perorso della cartella da analizzare
+	Ritorna			:			nTotale -> intero, numero delle righe totali presenti nei vari file
+*/
+int getRowCount(char *sPath){
+	int nTotale,nApp;
+	char sName[MAXFILENAMELENGTH];
+	char sFilePath[MAXFILENAMELENGTH];
+
+	nTotale = nApp = 0;
+
+	DIR *pDirectory;		// 	Puntatore alla directory
+	struct dirent *ep;		// 	Struttura che conterrà i valori generati da readdir, così formata:
+							//	ino_t  d_ino       file serial number
+							//	char   d_name[]    name of entry
+
+	struct stat sb;     /*  struttura che contiene le informazioni sui file, cosi formata:
+	                        struct stat {
+	                            dev_t     st_dev;     // ID of device containing file
+	                            ino_t     st_ino;     // inode number
+	                            mode_t    st_mode;    // protection
+	                            nlink_t   st_nlink;   // number of hard links
+	                            uid_t     st_uid;     // user ID of owner
+	                            gid_t     st_gid;     // group ID of owner
+	                            dev_t     st_rdev;    // device ID (if special file)
+	                            off_t     st_size;    // total size, in bytes
+	                            blksize_t st_blksize; // blocksize for file system I/O
+	                            blkcnt_t  st_blocks;  // number of 512B blocks allocated
+	                            time_t    st_atime;   // time of last access
+	                            time_t    st_mtime;   // time of last modification
+	                            time_t    st_ctime;   // time of last status change
+	                        };
+	                    */
+	// Apro la cartella
+	pDirectory = opendir (sPath);
+
+	// Se non ci sono stati errori durante l'apertura continuo ad analizzare la cartella...
+	if (pDirectory != NULL){
+		// Estraggo tutti i nomi di file/cartelle presenti e li gestisco a mio piacere
+		while (ep = readdir (pDirectory)){
+
+			// Inizializzo il percorso, ex: folder
+			strcpy(sFilePath,sPath);
+			strcat(sFilePath,"/");
+
+			strcpy(sName,ep->d_name);
+
+			// Concateno al percorso il nome del file
+			strcat(sFilePath,sName);
+
+
+			// Se il nome del file è . oppure .. ignoro
+			if (strcmp(sName,".") == 0 || strcmp(sName,"..") == 0) continue;
+
+			printf("Scanning: %s\n", sFilePath);
+
+			// Provo ad estrarre le informazioni del file e se fallisce passo al file successivo
+			if (stat(sFilePath, &sb) == -1) continue;
+
+			// Se è una cartella richiamo questa stessa funzione passandogli come parametro il percorso della sotto cartella...
+			if(S_ISDIR(sb.st_mode)){
+				if ((nApp = getRowCount(sFilePath)) != -1)
+					nTotale += nApp;
+			}else{	// ... Altrimenti scansiono il file e conto il numero di righe
+				nTotale += getFileRowCount(sFilePath);
+			}
+		}
+
+		closedir (pDirectory);
+	}else{	// ... Altrimenti ritorno -1
+
+		return -1;
+	}
+
+	return nTotale;
+}
+
+/*
+	Cosa fa			:			Stamnpa a schermo che il comando inserito non è valido
+*/
 void unknownCommand(void){
 	fprintf(stderr, "Unknown command, read the manual using --help command\n");
 }
