@@ -16,3 +16,10 @@ void printRowCount(char *sPath);
 int getFileRowCount(char *sFilePath);
 void printProjectCost(char *sPath);
 int getProjectCost(char *sPath);
+struct config
+{
+	float nAverageWritingTime;
+	float nHourlyCost;
+};
+struct config loadConf();
+char** parseConf(char *sConfLine);

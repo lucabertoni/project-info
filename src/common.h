@@ -1,0 +1,1 @@
+char** explode(char *sLine,char cCarattere);

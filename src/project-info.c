@@ -1,11 +1,16 @@
 #include "project-info.h"	// Includo l'header
+#include "common.h"
 
 // TODO			:			File di configurazione per questi parametri
 #define COMMANDSCOUNT   	3       // Numero di comandi presenti nel programma (aumentare in base alla necessità)
 #define MAXFILENAMELENGTH	255		// Lunghezza massima del nome di un file/direcory
 #define MAXFILELINELEN		1024	// Lunghezza massima di una riga riga di un file di testo
+
 #define HOURLYCOST			20		// Costo orario nella moneta dell'utente per lo sviluppo del progetto
 #define AVERAGEWRITINGTIME	15		// Tempo medio in secondi di scrittura di una riga di testo
+
+
+struct config stConfig;
 
 /*
 	Cosa fa			:			Gestisce il funzionamento del programma in base i parametri (comandi e opzioni)
@@ -18,6 +23,10 @@ void scanProject(char *sCommand,char *sPath){
 	aCommands[1] = "--get-row-count";
 	aCommands[2] = "--get-project-cost";
 
+	// Carico le configurazioni dell'utente
+	stConfig = loadConf();
+
+	// Gestisco la richiesta dell'utente in base al comando che ha inserito
 	if(strcmp(sCommand,aCommands[0]) == 0)          printHelp();
 	else if(strcmp(sCommand,aCommands[1]) == 0)     printRowCount(sPath);
 	else if(strcmp(sCommand,aCommands[2]) == 0)     printProjectCost(sPath);
@@ -49,7 +58,7 @@ void printHelp(void){
 	fprintf(stdout, "\t\t--get-project-cost :\n");
 	fprintf(stdout, "\t\t\tGet an approximate cost of the project. This calculation uses an average-writing-time\n");
 	fprintf(stdout, "\t\t\tof 20 seconds for each line of text in the project, and a hourly cost of 20 (euro/USD/...)\n");
-	fprintf(stdout, "\t\t\tYou can configure this values in setting file (settings.txt)\n");
+	fprintf(stdout, "\t\t\tYou can configure this values in setting file (project-info.conf)\n");
 	fprintf(stdout, "\t<path>\n");	
 	fprintf(stdout, "\t\tPath of the folder you want to scan (without the / in the end). Ex: folder\n");
 	fprintf(stdout, "\t\tThis will scan the directory called 'folder'\n");	
@@ -215,9 +224,50 @@ int getProjectCost(char *sPath){
 	if (nRowCount == -1)
 		return -1;
 
-	nProjectCost = (float)(((float)((float)((float)(nRowCount*AVERAGEWRITINGTIME))/60)/60)*HOURLYCOST);
+	nProjectCost = (float)(((float)((float)((float)(nRowCount*stConfig.nAverageWritingTime))/60)/60)*stConfig.nHourlyCost);
 
 	return nProjectCost;
+}
+
+char** parseConf(char *sConfLine){
+	char separatore;
+	separatore = '=';
+	char **aRet = NULL;
+
+	aRet = explode(sConfLine,separatore);
+
+	return aRet;
+}
+
+struct config loadConf(){
+	const char sConfPath[] = "project-info.conf";
+	char sLine[MAXFILELINELEN];
+	char **aSettings = NULL;
+	struct config structConfig;
+
+	// Puntatore al file delle configurazioni
+	FILE *pFile;
+
+	structConfig.nAverageWritingTime = 15;	// Tempo medio di scrittura di una riga di testo
+	structConfig.nHourlyCost = 20;			// Costo orario del detentore del progetto
+
+	// Apro il file delle configurazioni in modalià lettura
+	pFile = fopen (sConfPath, "r");
+
+	// Se il file non è stato aperto stampo un messaggio d'errore e termino l'esecuzione
+	if (pFile==NULL){
+		printf("Error occurred reading conf file.\n");
+		exit(0);
+	}
+
+	// Leggo il file riga per riga
+	while (fgets(sLine, sizeof(sLine), pFile)){
+		aSettings = parseConf(sLine);
+		if (strcmp(aSettings[0],"AVERAGEWRITINGTIME") == 0)	structConfig.nAverageWritingTime = atof(aSettings[1]);
+		else if(strcmp(aSettings[0],"HOURLYCOST") == 0)	structConfig.nHourlyCost = atof(aSettings[1]);
+	}
+
+	return structConfig;
 }
 
 /*
