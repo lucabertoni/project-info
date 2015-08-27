@@ -1,8 +1,9 @@
 #include "project-info.h"	// Includo l'header
 #include "common.h"
 
+#define COMMANDSCOUNT   	4       // Numero di comandi presenti nel programma (aumentare in base alla necessità)
+
 // TODO			:			File di configurazione per questi parametri
-#define COMMANDSCOUNT   	3       // Numero di comandi presenti nel programma (aumentare in base alla necessità)
 #define MAXFILENAMELENGTH	255		// Lunghezza massima del nome di un file/direcory
 #define MAXFILELINELEN		1024	// Lunghezza massima di una riga riga di un file di testo
 
@@ -18,6 +19,7 @@ void scanProject(char *sCommand,char *sPath){
 	aCommands[0] = "--help";
 	aCommands[1] = "--get-row-count";
 	aCommands[2] = "--get-project-cost";
+	aCommands[3] = "--get-languages";
 
 	// Carico le configurazioni dell'utente
 	stConfig = loadConf();
@@ -26,6 +28,7 @@ void scanProject(char *sCommand,char *sPath){
 	if(strcmp(sCommand,aCommands[0]) == 0)          printHelp();
 	else if(strcmp(sCommand,aCommands[1]) == 0)     printRowCount(sPath);
 	else if(strcmp(sCommand,aCommands[2]) == 0)     printProjectCost(sPath);
+	else if(strcmp(sCommand,aCommands[2]) == 0)     printLanguages(sPath);
 	else                                            unknownCommand();
 }
 
@@ -223,6 +226,10 @@ int getProjectCost(char *sPath){
 	nProjectCost = (float)(((float)((float)((float)(nRowCount*stConfig.nAverageWritingTime))/60)/60)*stConfig.nHourlyCost);
 
 	return nProjectCost;
+}
+
+void printLanguages(sPath){
+ 
 }
 
 char** parseConf(char *sConfLine){

@@ -23,3 +23,5 @@ struct config
 };
 struct config loadConf();
 char** parseConf(char *sConfLine);
+void printLanguages(char *sPath);
+int getLanguages(char *sPath);
