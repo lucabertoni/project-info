@@ -6,10 +6,6 @@
 #define MAXFILENAMELENGTH	255		// Lunghezza massima del nome di un file/direcory
 #define MAXFILELINELEN		1024	// Lunghezza massima di una riga riga di un file di testo
 
-#define HOURLYCOST			20		// Costo orario nella moneta dell'utente per lo sviluppo del progetto
-#define AVERAGEWRITINGTIME	15		// Tempo medio in secondi di scrittura di una riga di testo
-
-
 struct config stConfig;
 
 /*
