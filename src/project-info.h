@@ -21,7 +21,12 @@ struct config
 	float nAverageWritingTime;
 	float nHourlyCost;
 };
+struct stLanguages
+{
+	char *sLinguaggio; // Linguaggio e non, es: Java
+	int nTotale;		// Numero di occorrenze totali, es: 15
+};
 struct config loadConf();
 char** parseConf(char *sConfLine);
-int getLanguages(char *sPath);
+struct stLanguages *getLanguages(char *sPath);
 void printLanguages(char *sPath);

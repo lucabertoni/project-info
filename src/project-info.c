@@ -3,6 +3,11 @@
 
 #define COMMANDSCOUNT   	4       // Numero di comandi presenti nel programma (aumentare in base alla necessità)
 
+/*******************************************/
+/* TODO			:			funzione log   */
+/* TODO			:			funzione print */
+/*******************************************/
+
 // TODO			:			File di configurazione per questi parametri
 #define MAXFILENAMELENGTH	255		// Lunghezza massima del nome di un file/direcory
 #define MAXFILELINELEN		1024	// Lunghezza massima di una riga riga di un file di testo
@@ -28,7 +33,7 @@ void scanProject(char *sCommand,char *sPath){
 	if(strcmp(sCommand,aCommands[0]) == 0)          printHelp();
 	else if(strcmp(sCommand,aCommands[1]) == 0)     printRowCount(sPath);
 	else if(strcmp(sCommand,aCommands[2]) == 0)     printProjectCost(sPath);
-	else if(strcmp(sCommand,aCommands[2]) == 0)     printLanguages(sPath);
+	else if(strcmp(sCommand,aCommands[3]) == 0)     printLanguages(sPath);
 	else                                            unknownCommand();
 }
 
@@ -166,7 +171,6 @@ int getRowCount(char *sPath){
 			// Concateno al percorso il nome del file
 			strcat(sFilePath,sName);
 
-
 			// Se il nome del file è . oppure .. ignoro
 			if (strcmp(sName,".") == 0 || strcmp(sName,"..") == 0) continue;
 
@@ -193,7 +197,10 @@ int getRowCount(char *sPath){
 	return nTotale;
 }
 
-
+/*
+	Cosa fa			:			Stampa a schermo il costo attuale del progetto
+	sPath			:			char, percorso della cartella da scansionare
+*/
 void printProjectCost(char *sPath){
 	float nProjectCost;
 
@@ -207,6 +214,10 @@ void printProjectCost(char *sPath){
 		fprintf(stdout, "Project cost: %f\n",nProjectCost);
 }
 
+/*
+	Cosa fa			:			Calcola il costo attuale del progetto
+	sPath			:			char, percorso della cartella da scansionare
+*/
 int getProjectCost(char *sPath){
 	int nRowCount;
 	float nProjectCost;
@@ -228,14 +239,123 @@ int getProjectCost(char *sPath){
 	return nProjectCost;
 }
 
-int getLanguages(char *sPath){
-	
+struct stLanguages *getLanguages(char *sPath){
+	int nPos,i;
+
+	nPos = 0;
+	// Array di struct di ritorno
+	struct stLanguages *aLanguages = malloc((sizeof(struct stLanguages)));
+
+	// Strutta di appoggo che conterrà i dati in caso di ricorsione
+	struct stLanguages *aApp;
+
+	char sName[MAXFILENAMELENGTH];
+	char sFilePath[MAXFILENAMELENGTH];
+
+	DIR *pDirectory;		// 	Puntatore alla directory
+	struct dirent *ep;		// 	Struttura che conterrà i valori generati da readdir, così formata:
+							//	ino_t  d_ino       file serial number
+							//	char   d_name[]    name of entry
+
+	struct stat sb;     /*  struttura che contiene le informazioni sui file, cosi formata:
+	                        struct stat {
+	                            dev_t     st_dev;     // ID of device containing file
+	                            ino_t     st_ino;     // inode number
+	                            mode_t    st_mode;    // protection
+	                            nlink_t   st_nlink;   // number of hard links
+	                            uid_t     st_uid;     // user ID of owner
+	                            gid_t     st_gid;     // group ID of owner
+	                            dev_t     st_rdev;    // device ID (if special file)
+	                            off_t     st_size;    // total size, in bytes
+	                            blksize_t st_blksize; // blocksize for file system I/O
+	                            blkcnt_t  st_blocks;  // number of 512B blocks allocated
+	                            time_t    st_atime;   // time of last access
+	                            time_t    st_mtime;   // time of last modification
+	                            time_t    st_ctime;   // time of last status change
+	                        };
+	                    */
+	// Apro la cartella
+	pDirectory = opendir (sPath);
+
+	// Se non ci sono stati errori durante l'apertura continuo ad analizzare la cartella...
+	if (pDirectory != NULL){
+		// Estraggo tutti i nomi di file/cartelle presenti e li gestisco a mio piacere
+		while (ep = readdir (pDirectory)){
+
+			// Inizializzo il percorso, ex: folder
+			strcpy(sFilePath,sPath);
+			strcat(sFilePath,"/");
+
+			strcpy(sName,ep->d_name);
+
+			// Concateno al percorso il nome del file
+			strcat(sFilePath,sName);
+
+			// Se il nome del file è . oppure .. ignoro
+			if (strcmp(sName,".") == 0 || strcmp(sName,"..") == 0) continue;
+
+			printf("Scanning: %s\n", sFilePath);
+
+			// Provo ad estrarre le informazioni del file e se fallisce passo al file successivo
+			if (stat(sFilePath, &sb) == -1) continue;
+
+			// Se è una cartella richiamo questa stessa funzione passandogli come parametro il percorso della sotto cartella...
+			if(S_ISDIR(sb.st_mode)){
+				aApp = getLanguages(sFilePath);
+
+				// Se ho estratto almeno un linguaggio lo salvo nell'array di ritorno
+				if(aApp[0].sLinguaggio){
+					i = 0;
+					// Ciclo su ogni elemento per copiarlo nell'array di ritorno
+					while(aApp[i].sLinguaggio){
+						// Alloco la memoria necessaria per l'elemento
+						//aLanguages[nPos].sLinguaggio = (char*) malloc(sizeof(char*));
+
+//						aLanguages = incrementaLinguaggio(aApp[i].sLinguaggio,aApp[i].nTotale,aLanguages);
+						++i;
+					}
+				}
+			}else{	// ... Altrimenti ... 
+
+			}
+		}
+
+		closedir (pDirectory);
+	}else{	// ... Altrimenti ritorno -1
+
+		return aLanguages;
+	}
+
+	return aLanguages;
 }
 
+/*
+	Cosa fa			:			Stampa a schermo la percentuale dei vari linguaggi di programmazione e non
+	sPath			:			char, percorso della cartella da scansionare
+*/
 void printLanguages(char *sPath){
+	struct stLanguages *aLanguages;
 
+	fprintf(stdout, "Calculating percentage of languages ...\n");
+
+	
+	aLanguages = getLanguages(sPath);
+
+	if (!(aLanguages[0].sLinguaggio))
+		fprintf(stdout, "No files found in %s\n",sPath);
+	else
+		printf("|%s|",aLanguages[0].sLinguaggio);
 }
 
+/*
+	Cosa fa			:			Esegue il parse della riga file di configurazione basandosi sul
+								carattere separatore '='
+	sConfLine		:			*char(array di caratteri), riga di cui fare il parse es:
+								AVERAGEWRITINGTIME=15
+	Ritorna			:			aRet -> array di strighe, es:
+									[0] => AVERAGEWRITINGTIME
+									[1] => 15
+*/
 char** parseConf(char *sConfLine){
 	char separatore;
 	separatore = '=';
@@ -246,6 +366,11 @@ char** parseConf(char *sConfLine){
 	return aRet;
 }
 
+/*
+	Cosa fa			:			Carica il file di configurazione con ciò di cui necessita
+								Il path del file è fisso (.\project-info.conf)	
+	Ritorna			:			struct config, struttura contenente le configurazioni necessarie
+*/
 struct config loadConf(){
 	const char sConfPath[] = "project-info.conf";
 	char sLine[MAXFILELINELEN];
