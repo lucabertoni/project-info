@@ -228,8 +228,12 @@ int getProjectCost(char *sPath){
 	return nProjectCost;
 }
 
-void printLanguages(sPath){
- 
+int getLanguages(char *sPath){
+	
+}
+
+void printLanguages(char *sPath){
+
 }
 
 char** parseConf(char *sConfLine){
