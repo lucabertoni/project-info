@@ -3,7 +3,10 @@
 #include <stdlib.h>
 
 /*
-	Cosa fa			:	
+	Cosa fa			:			Esplode una stringa su un carattere
+	sLine			:			char* (array di caratteri/stringa), stringa da esplodere
+	cSeparatore		:			char, carattere sul quale esplodere la stringa
+	Ritorna			:			aRet -> char** (array di stringhe), contiene tutti gli elementi esplosi
 */
 char** explode(char *sLine,char cSeparatore){
 	char sApp[strlen(sLine)];	// Stringa di appoggio
@@ -45,10 +48,27 @@ char** explode(char *sLine,char cSeparatore){
 		}
 		++i;
 	}
-
 	// Alloco memoria per una nuova stringa per l'array di stringhe
 	aRet[i2] = (char*)malloc(nLen*sizeof(sLine));
 	strcpy(aRet[i2],sApp);
 
 	return aRet;
+}
+
+// Cosa fa			:			Converte una stringa in maiuscolo
+// sStringa			:			stringa, testo da convertire tutto in maiuscolo
+// Ritorna			:			sRet -> stringa, testo in maiuscolo
+char* stringToUpper(char* sStringa){
+	int i = 0;
+	char cChar;
+	char sRet = malloc(strlen(sStringa) * sizeof(char));
+	while((cChar = sStringa[i]) != '\0'){
+		if(islower(cChar)){
+			sRet[i] = toupper(cChar);
+		}else{
+			sRet[i] = cChar;
+		}
+	++i;
+	}
+	return sRet;
 }
