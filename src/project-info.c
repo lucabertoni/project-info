@@ -238,19 +238,104 @@ int getProjectCost(char *sPath){
 
 	return nProjectCost;
 }
+/*
+	Cosa fa			:			Incrementa il valore associato ad un linguaggio(e non) di nIncremento.
+								Se il linguaggio(e non) non esiste, viene aggiunto 
+	sLinguaggio		:			stringa, linguaggio di programmazione di cui incrementare il valore
+	nIncremento		:			intero -> incremento da assegnare al linguaggio
+	stLanguages		:			struct stLanguages *, struttura alla quale incrementare il linguaggio
+	Ritorna			:			aRet -> struct stLanguages *, struttura con i valori aggiornati
+*/
+struct stLanguages *incrementaLinguaggio(char* sLinguaggio,int nIncremento,struct stLanguages *aLanguages){
+//	aLanguages[0].sLinguaggio = (char*) malloc(sizeof(char*));
+	int i,bIncrementato;
+	struct stLanguages *aRet;
 
+	// Copio la struct attuale in quella di ritorno
+	aRet = malloc(sizeof(aLanguages));
+
+	// Copia il contenuto del primo elemento all'interno del secondo
+	aRet = aLanguages;
+
+	// Ciclo fino a quando trovo il linguaggio da incrementare oppure fino alla fine dell'array
+	i = 0;
+	bIncrementato = 0;	// 0 -> valore non incrementato => linguaggio NON presente nell'array => devo crearlo e
+						// 		poi assegnargli il valore
+						// 1 -> valore incrementato => linguaggio presente nell'array
+	while(aRet[i].sLinguaggio){
+		// Se il linguaggio corrisponde con un elemento dell'array ne incremento il valore
+		if(strcmp(aRet[i].sLinguaggio,sLinguaggio) == 0){
+			aRet[i].nTotale += nIncremento;
+			bIncrementato = 1;
+			break;
+		}
+	++i;
+	}
+
+
+	// Se non ho incrementato il valore è perchè il linguaggio non è presente nell'array
+	// Allora devo aggiungerlo e poi assegnargli il valore
+	if (!bIncrementato){
+		// Aggiungo uno spazio in più in memoria
+		aRet = (struct stLanguages*) realloc (aRet, (++i * sizeof(struct stLanguages)));
+
+		// Alloco la memoria necessaria per contenere il nome del linguaggio
+		aRet[i-1].sLinguaggio = (char*) malloc(sizeof(char*));
+
+		// Assegno i valori al nuovo linguaggio
+		aRet[i-1].sLinguaggio = sLinguaggio;
+		aRet[i-1].nTotale = nIncremento;
+	}
+
+	return aRet;
+}
+
+// Cosa fa			:			Traduce un'estensione nel suo linguaggio/nome corrispondente, es:
+//								(.)py -> Python
+// sEstensione		:			stringa, estensione da tradurre, es: py (senza il punto)
+// Ritorna			:			sRet -> stringa, traduzione dell'estensione.
+//								Nel caso non sia presente ritorna "Unknown"
+char* estensione2Linguaggio(char* sEstensione){
+	char* sRet;
+
+	stringToUpper(sEstensione);
+	if(strcmp(sEstensione,"C") == 0) sRet = "C";
+	else if((strcmp(sEstensione,"O") == 0) || (strcmp(sEstensione,"OUT") == 0)) sRet = "C";
+	else if((strcmp(sEstensione,"H") == 0)) sRet = "C";
+	else if((strcmp(sEstensione,"CONF") == 0)) sRet = "Config file";
+	else sRet = "Unknown";
+
+	return sRet;
+}
+
+/*
+	Cosa fa			:			Estrae la lista di linguaggi(e non) utilizzati nel progetto, insieme al
+								numero totale con il quale sono presenti
+	sPath			:			stringa, percorso della cartella del progetto
+	Ritorna			:			aLanguages -> struct stLanguages *, contiene la lista dei linguaggi-totali
+								Vuoto in caso di errore o nessun file presente
+*/
 struct stLanguages *getLanguages(char *sPath){
-	int nPos,i;
-
+	int nPos,i,i29;
 	nPos = 0;
-	// Array di struct di ritorno
-	struct stLanguages *aLanguages = malloc((sizeof(struct stLanguages)));
+
+	// Conterrà il file esploso (nome, estensione(ultimo elemento))
+	char** aFile;
+
+	// Conterrà l'estensione del file
+	char* sEstensione;
+
+	// Nome del linguaggio associato all'estensione del file
+	char* sLinguaggio;
 
 	// Strutta di appoggo che conterrà i dati in caso di ricorsione
 	struct stLanguages *aApp;
 
 	char sName[MAXFILENAMELENGTH];
 	char sFilePath[MAXFILENAMELENGTH];
+
+	// Array di struct di ritorno
+	struct stLanguages *aLanguages = malloc((sizeof(struct stLanguages)));
 
 	DIR *pDirectory;		// 	Puntatore alla directory
 	struct dirent *ep;		// 	Struttura che conterrà i valori generati da readdir, così formata:
@@ -294,13 +379,12 @@ struct stLanguages *getLanguages(char *sPath){
 			// Se il nome del file è . oppure .. ignoro
 			if (strcmp(sName,".") == 0 || strcmp(sName,"..") == 0) continue;
 
-			printf("Scanning: %s\n", sFilePath);
-
 			// Provo ad estrarre le informazioni del file e se fallisce passo al file successivo
 			if (stat(sFilePath, &sb) == -1) continue;
 
 			// Se è una cartella richiamo questa stessa funzione passandogli come parametro il percorso della sotto cartella...
 			if(S_ISDIR(sb.st_mode)){
+				// Estraggo il totate dei linguaggi dalla sottocartella
 				aApp = getLanguages(sFilePath);
 
 				// Se ho estratto almeno un linguaggio lo salvo nell'array di ritorno
@@ -308,21 +392,39 @@ struct stLanguages *getLanguages(char *sPath){
 					i = 0;
 					// Ciclo su ogni elemento per copiarlo nell'array di ritorno
 					while(aApp[i].sLinguaggio){
-						// Alloco la memoria necessaria per l'elemento
-						//aLanguages[nPos].sLinguaggio = (char*) malloc(sizeof(char*));
-
-//						aLanguages = incrementaLinguaggio(aApp[i].sLinguaggio,aApp[i].nTotale,aLanguages);
+						// Incremento l'array di ritorno con i totali dei linguaggi estratti dalla sottocartella
+						aLanguages = incrementaLinguaggio(aApp[i].sLinguaggio,aApp[i].nTotale,aLanguages);
 						++i;
 					}
-				}
-			}else{	// ... Altrimenti ... 
 
+					free(aApp);
+				}
+			}else{	// ... Altrimenti incremento di uno il linguaggio corrispondente al file
+				/*
+					Cosa fa			:			Esplode una stringa su un carattere
+					sLine			:			char* (array di caratteri/stringa), stringa da esplodere
+					cSeparatore		:			char, carattere sul quale esplodere la stringa
+					Ritorna			:			aRet -> char** (array di stringhe), contiene tutti gli elementi esplosi
+				*/
+				// Esplodo la stringa sul punto e 
+				aFile = explode(sName,'.');
+				i29 = 0;
+				while(aFile[i29]) ++i29;
+
+				sEstensione = aFile[i29-1];
+
+				sLinguaggio = estensione2Linguaggio(sEstensione);
+
+				// Incremento di uno il linguaggio
+				aLanguages = incrementaLinguaggio(sLinguaggio,1,aLanguages);
+
+				// Rilascio la variabile
+				free(aFile);
 			}
 		}
 
 		closedir (pDirectory);
-	}else{	// ... Altrimenti ritorno -1
-
+	}else{	// ... Altrimenti, in caso di erore ritorno l'array vuoto
 		return aLanguages;
 	}
 
@@ -344,7 +446,7 @@ void printLanguages(char *sPath){
 	if (!(aLanguages[0].sLinguaggio))
 		fprintf(stdout, "No files found in %s\n",sPath);
 	else
-		printf("|%s|",aLanguages[0].sLinguaggio);
+		printf("Language - Total - Percentages\n");
 }
 
 /*

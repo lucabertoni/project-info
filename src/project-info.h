@@ -28,5 +28,7 @@ struct stLanguages
 };
 struct config loadConf();
 char** parseConf(char *sConfLine);
+char* estensione2Linguaggio(char* sEstensione);
+struct stLanguages *incrementaLinguaggio(char* sLinguaggio,int nTotale,struct stLanguages *aLanguages);
 struct stLanguages *getLanguages(char *sPath);
 void printLanguages(char *sPath);

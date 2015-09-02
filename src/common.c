@@ -32,7 +32,7 @@ char** explode(char *sLine,char cSeparatore){
 			nLen = strlen(sApp);
 
 			// Alloco memoria per una nuova stringa per l'array di stringhe
-			aRet[i2-1] = (char*)malloc(nLen*sizeof(sLine));
+			aRet[i2-1] = (char*)malloc(strlen(sApp)*sizeof(sApp));
 
 			// Copio la stringa di appoggio nell'array di ritorno
 			strcpy(aRet[i2-1],sApp);
@@ -48,27 +48,21 @@ char** explode(char *sLine,char cSeparatore){
 		}
 		++i;
 	}
-	// Alloco memoria per una nuova stringa per l'array di stringhe
-	aRet[i2] = (char*)malloc(nLen*sizeof(sLine));
-	strcpy(aRet[i2],sApp);
+
+	if(strcmp(sApp,"") != 0){
+			// Alloco memoria per una nuova stringa per l'array di stringhe
+			aRet[i2] = (char*) malloc(strlen(sApp)*sizeof(sApp));
+			aRet[i2] = sApp;
+	}
 
 	return aRet;
 }
 
 // Cosa fa			:			Converte una stringa in maiuscolo
 // sStringa			:			stringa, testo da convertire tutto in maiuscolo
-// Ritorna			:			sRet -> stringa, testo in maiuscolo
-char* stringToUpper(char* sStringa){
-	int i = 0;
-	char cChar;
-	char sRet = malloc(strlen(sStringa) * sizeof(char));
-	while((cChar = sStringa[i]) != '\0'){
-		if(islower(cChar)){
-			sRet[i] = toupper(cChar);
-		}else{
-			sRet[i] = cChar;
-		}
-	++i;
+void stringToUpper(char* sStringa){
+	while( *sStringa ){ 
+		*sStringa=toupper( *sStringa ); 
+		sStringa++; 
 	}
-	return sRet;
 }
