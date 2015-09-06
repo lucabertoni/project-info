@@ -63,6 +63,9 @@ void printHelp(void){
 	fprintf(stdout, "\t\t\tGet an approximate cost of the project. This calculation uses an average-writing-time\n");
 	fprintf(stdout, "\t\t\tof 20 seconds for each line of text in the project, and a hourly cost of 20 (euro/USD/...)\n");
 	fprintf(stdout, "\t\t\tYou can configure this values in setting file (project-info.conf)\n");
+	fprintf(stdout, "\t\t--get-languages :\n");
+	fprintf(stdout, "\t\t\tGet a list of used languages (and other) in your project. This command give you a total of files for each");
+	fprintf(stdout, "\t\t\tlanguage, and a percentage of the language\n");
 	fprintf(stdout, "\t<path>\n");	
 	fprintf(stdout, "\t\tPath of the folder you want to scan (without the / in the end). Ex: folder\n");
 	fprintf(stdout, "\t\tThis will scan the directory called 'folder'\n");	
@@ -432,21 +435,51 @@ struct stLanguages *getLanguages(char *sPath){
 }
 
 /*
+  Cosa fa			:			Calcola il totale dei linguaggi (e non) estratti
+  aLanguages			:			struct, lista di linguaggi con annesso nTotale identificativo
+  Ritorna			:			nRet -> intero, totale del numero dei linguaggi trovati
+*/
+int getLanguagesCount(struct stLanguages *aLanguages){
+    int i,nRet;
+    i = nRet = 0;
+    while(aLanguages[i].sLinguaggio){
+	nRet += aLanguages[i++].nTotale;
+    }
+
+    return nRet;
+}
+
+/*
 	Cosa fa			:			Stampa a schermo la percentuale dei vari linguaggi di programmazione e non
 	sPath			:			char, percorso della cartella da scansionare
 */
 void printLanguages(char *sPath){
 	struct stLanguages *aLanguages;
+	int i,nTotaleLinguaggi;
+	float nPercentuale;
 
 	fprintf(stdout, "Calculating percentage of languages ...\n");
 
 	
 	aLanguages = getLanguages(sPath);
 
-	if (!(aLanguages[0].sLinguaggio))
+	if (!(aLanguages[0].sLinguaggio)){
 		fprintf(stdout, "No files found in %s\n",sPath);
-	else
-		printf("Language - Total - Percentages\n");
+	}else{
+	    nTotaleLinguaggi = getLanguagesCount(aLanguages);
+	    printf("\nLanguage - Total - Percentages\n");
+	    i = 0;
+	    while(aLanguages[i].sLinguaggio){
+		nPercentuale = ((float)aLanguages[i].nTotale / (float)nTotaleLinguaggi)*100;
+		
+		printf("%s - ",aLanguages[i].sLinguaggio);
+		printf("%d - ",aLanguages[i].nTotale);
+		printf("%.2f\%\n",nPercentuale);
+		++i;
+	    }
+	    printf("\nTotal: %d\n",nTotaleLinguaggi);
+	    printf("\n");
+	}
 }
 
 /*

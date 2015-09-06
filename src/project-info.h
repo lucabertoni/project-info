@@ -31,4 +31,5 @@ char** parseConf(char *sConfLine);
 char* estensione2Linguaggio(char* sEstensione);
 struct stLanguages *incrementaLinguaggio(char* sLinguaggio,int nTotale,struct stLanguages *aLanguages);
 struct stLanguages *getLanguages(char *sPath);
+int getLanguagesCount(struct stLanguages *aLanguages);
 void printLanguages(char *sPath);
