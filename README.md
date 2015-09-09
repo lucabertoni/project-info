@@ -22,10 +22,10 @@ Download this package (clone git repository or download zip file).
 '**cd**' into src/ and then run '**make**' command.
 
 ## Commands
-Usage: project-info <command> <path>
-<command>
-	--help :
-	       Show the manual
+Usage: project-info <command> <path>  
+<command>  
+	--help :  
+	       Show the manual  
 
 
 ## Info/Contacts:
