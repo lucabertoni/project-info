@@ -23,7 +23,7 @@ Download this package (clone git repository or download zip file).
 
 ## Commands
 Usage: project-info \<command\> \<path\>  
-<command>  
+\<command\>  
 	   **--help** :  
 	   	      Show the manual  
 	   **--get-row-count** :  
