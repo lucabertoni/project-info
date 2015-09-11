@@ -293,19 +293,26 @@ struct stLanguages *incrementaLinguaggio(char* sLinguaggio,int nIncremento,struc
 	return aRet;
 }
 
-// Cosa fa			:			Traduce un'estensione nel suo linguaggio/nome corrispondente, es:
-//								(.)py -> Python
-// sEstensione		:			stringa, estensione da tradurre, es: py (senza il punto)
-// Ritorna			:			sRet -> stringa, traduzione dell'estensione.
-//								Nel caso non sia presente ritorna "Unknown"
+/*
+Cosa fa				:			Traduce un'estensione nel suo linguaggio/nome corrispondente, es:
+							(.)py -> Python
+sEstensione			:			stringa, estensione da tradurre, es: py (senza il punto)
+Ritorna				:			sRet -> stringa, traduzione dell'estensione.
+							Nel caso non sia presente ritorna "Unknown"
+*/
 char* estensione2Linguaggio(char* sEstensione){
 	char* sRet;
 
 	stringToUpper(sEstensione);
 	if(strcmp(sEstensione,"C") == 0) sRet = "C";
-	else if((strcmp(sEstensione,"O") == 0) || (strcmp(sEstensione,"OUT") == 0)) sRet = "C";
+	else if((strcmp(sEstensione,"O") == 0) || (strcmp(sEstensione,"OUT") == 0)) sRet = "C (binary)";
 	else if((strcmp(sEstensione,"H") == 0)) sRet = "C";
 	else if((strcmp(sEstensione,"CONF") == 0)) sRet = "Config file";
+	else if((strcmp(sEstensione,"PHP") == 0)) sRet = "Php";
+	else if((strcmp(sEstensione,"HTML") == 0)) sRet = "Html";
+	else if((strcmp(sEstensione,"JS") == 0)) sRet = "Javascript";
+	else if((strcmp(sEstensione,"JAVA") == 0)) sRet = "Java";
+	else if((strcmp(sEstensione,"PY") == 0)) sRet = "Python";
 	else sRet = "Unknown";
 
 	return sRet;
